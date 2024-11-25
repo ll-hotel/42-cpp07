@@ -1,41 +1,46 @@
-CXX = c++
-CXXFLAGS = -Wall -Wextra -Werror -std=c++98
-ifneq ("${DEBUG}", "")
-	CXXFLAGS := ${DEBUG} ${CXXFLAGS}
-endif
-NAME = few_fun
+CC = c++
 
-SRC_DIR = .
-OBJ_DIR = .obj
-OBJS = $(patsubst %.cpp,${OBJ_DIR}/%.o,\
-	   main.cpp \
-	   )
+CFLAGS = -Wall -Wextra -Werror -std=c++98
+IFLAGS = $(addprefix -I,${INCLUDES})
+DFLAGS = -MD
+LFLAGS =
 
-DEPS = $(patsubst %.o,%.d,${OBJS})
+SRCS_DIR = srcs/
+OBJS_DIR = .obj/
+INCLUDES =
 
-.PHONY: all
+SRCS = main.cpp
+
+OBJS = ${SRCS:%.cpp=${OBJS_DIR}%.o}
+
+DEPS = ${OBJS:.o=.d}
+
+NAME = ex00
+
+.PHONY: all clean fclean re
+
 all: ${NAME}
 
 -include ${DEPS}
 
 ${NAME}: ${OBJS}
-	${CXX} ${CXXFLAGS} -o $@ ${OBJS}
+	${CC} ${CFLAGS} ${IFLAGS} ${DFLAGS} -o $@ $^ ${LFLAGS}
 
-${OBJ_DIR}/%.o: ${SRC_DIR}/%.cpp | ${OBJ_DIR}
-	${CXX} ${CXXFLAGS} -o $@ -c $<
+${OBJS_DIR}%.o: ${SRCS_DIR}%.cpp | ${OBJS_DIR}
+	${CC} ${CFLAGS} ${IFLAGS} ${DFLAGS} -o $@ -c $<
 
-${OBJ_DIR}:
+${OBJS_DIR}:
 	mkdir -p $(sort $(dir ${OBJS}))
 
-.PHONY: clean
 clean:
-	rm -rf ${OBJ_DIR}
+ifneq ($(wildcard ${OBJS_DIR}),)
+	rm -r ${OBJS_DIR}
+endif
 
-.PHONY: fclean
-fclean: clean
-	rm -f ${NAME}
+fclean: | clean
+ifneq ($(wildcard ${NAME}),)
+	rm ${NAME}
+endif
 
-.SILENT: re
-.PHONY: re
-re: fclean
-	make --no-print-directory
+re: | fclean
+	@make --no-print-directory
